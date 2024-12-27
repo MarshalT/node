@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Exit on any error
+set -e
+
+# Step 1: Clone the repository
+echo "Cloning the DFS node quick start repository..."
+git clone https://github.com/DFSNetwork/dfs-node-quick-start.git
+cd dfs-node-quick-start
+
+# Step 2: Download the DFS package for Ubuntu 22.04
+echo "Downloading the DFS package for Ubuntu 22.04..."
+wget https://github.com/DFSNetwork/dfs-core/releases/download/v10.0.0/dfs_10.0.0-ubuntu22.04_amd64.deb
+
+# Step 3: Update the system and install the package
+echo "Updating system and installing the DFS package..."
+sudo apt update
+sudo dpkg -i dfs_10.0.0-ubuntu22.04_amd64.deb
+
+# Step 4: Check if the installation is successful
+echo "Checking DFS Node installation..."
+nodeos --version
+
+# Step 5: Start the RPC node
+echo "Starting the DFS RPC node..."
+cd producer-node
+chmod +x start showlog stop
+./start
+
+echo "DFS Node setup completed successfully. Use './showlog' to view logs or './stop' to stop the node."
+
+# Step 6: 移动文件到 dfs-node-quick-start 目录
+cd ..
+echo "移动 snapshot-2024-12-24.tar 和 auto_script 到 dfs-node-quick-start 目录..."
+mv snapshot-2024-12-24.tar dfs-node-quick-start/
+mv auto_script dfs-node-quick-start/
+
+# Step 7: 解压 snapshot-2024-12-24.tar
+echo "解压 snapshot-2024-12-24.tar..."
+cd dfs-node-quick-start
+tar -xvf snapshot-2024-12-24.tar
+
+# Step 8: 执行 auto_script
+echo "执行 ./auto_script..."
+chmod +x auto_script
+./auto_script
+
+echo "全部操作完成。"
+
+
+

@@ -1,0 +1,69 @@
+#!/bin/bash
+DFS_DIR=$(pwd)                          # 当前工作目录
+SNAPSHOT_DIR="$DFS_DIR"                 # 快照存储目录
+DATE=$(date +%F)                        # 获取当前日期 (YYYY-MM-DD)
+LOG_FILE="$SNAPSHOT_DIR/snapshot_$DATE.log"  # 快照创建日志文件
+
+# ------------------- 停止节点并清理数据 -------------------
+# 停止当前目录下运行的节点
+echo "[$(date)] 停止节点..." >> "$LOG_FILE"
+ps -ef | grep "$DFS_DIR/data" | grep -v grep | awk '{print $2}' | xargs -r kill
+sleep 5  # 等待节点停止
+
+# 删除日志文件
+LOG_FILE_PATH="$DFS_DIR/log"
+if [ -f "$LOG_FILE_PATH" ]; then
+    rm -f "$LOG_FILE_PATH"
+    echo "[$(date)] 日志文件已删除: $LOG_FILE_PATH" >> "$LOG_FILE"
+else
+    echo "[$(date)] 未找到日志文件: $LOG_FILE_PATH" >> "$LOG_FILE"
+fi
+sleep 3 # 休息3秒
+# 删除 data/blocks 中的 blocks.index 和 blocks.log
+BLOCKS_DIR="$DFS_DIR/data/blocks"
+if [ -d "$BLOCKS_DIR" ]; then
+    rm -f "$BLOCKS_DIR/blocks.index" "$BLOCKS_DIR/blocks.log"
+    echo "[$(date)] 已删除 blocks.index 和 blocks.log 文件" >> "$LOG_FILE"
+else
+    echo "[$(date)] 未找到 blocks 目录: $BLOCKS_DIR" >> "$LOG_FILE"
+fi
+sleep 3 # 休息3秒
+# 删除 data/blocks/reversible 中的所有文件
+REVERSIBLE_DIR="$BLOCKS_DIR/reversible"
+if [ -d "$REVERSIBLE_DIR" ]; then
+    rm -rf "$REVERSIBLE_DIR"/*
+    echo "[$(date)] 已清空 reversible 目录" >> "$LOG_FILE"
+else
+    echo "[$(date)] 未找到 reversible 目录: $REVERSIBLE_DIR" >> "$LOG_FILE"
+fi
+sleep 3 # 休息3秒
+# 删除 data/state 中的所有文件
+STATE_DIR="$DFS_DIR/data/state"
+if [ -d "$STATE_DIR" ]; then
+    rm -rf "$STATE_DIR"/*
+    echo "[$(date)] 已清空 state 目录" >> "$LOG_FILE"
+else
+    echo "[$(date)] 未找到 state 目录: $STATE_DIR" >> "$LOG_FILE"
+fi
+sleep 3 # 休息3秒
+# ------------------- 使用最新快照启动节点 -------------------
+# 查找当前路径下最新的 .bin 文件
+LATEST_SNAPSHOT=$(ls -t "$DFS_DIR"/*.bin 2>/dev/null | head -n 1)
+if [ -z "$LATEST_SNAPSHOT" ]; then
+    echo "[$(date)] 错误: 未找到 .bin 文件，请确保当前目录下存在一个 .bin 文件。" >> "$LOG_FILE"
+    exit 1
+fi
+sleep 3 # 休息3秒
+# 启动节点
+echo "[$(date)] 使用快照文件启动节点: $LATEST_SNAPSHOT" >> "$LOG_FILE"
+nohup nodeos --snapshot="$LATEST_SNAPSHOT" --data-dir="$DFS_DIR/data/" --config-dir="$DFS_DIR/config/" > "$DFS_DIR/log" 2>&1 &
+
+# 等待节点启动完成
+sleep 500
+
+# 删除旧的 .bin 文件（保留最新的）
+echo "[$(date)] 删除旧的 .bin 文件..." >> "$LOG_FILE"
+find "$DFS_DIR" -type f -name "*.bin" ! -newer "$LATEST_SNAPSHOT" -exec rm -f {} \;
+
+echo "[$(date)] 节点已启动，旧的 .bin 文件已删除。日志文件: $DFS_DIR/log" >> "$LOG_FILE"
+echo "[$(date)] 全部操作完成。" >> "$LOG_FILE"
