@@ -21,32 +21,48 @@ sudo dpkg -i dfs_10.0.0-ubuntu22.04_amd64.deb
 echo "Checking DFS Node installation..."
 nodeos --version
 
-# Step 5: Start the RPC node
-echo "Starting the DFS RPC node..."
-cd producer-node
+# Step 5: Choose between producer-node or rpc-node
+echo "Please choose the node type you want to run:"
+echo "1) Producer Node"
+echo "2) RPC Node"
+read -p "Enter your choice (1 or 2): " NODE_TYPE
+
+if [[ "$NODE_TYPE" == "1" ]]; then
+  NODE_DIR="producer-node"
+  echo "You have selected Producer Node."
+elif [[ "$NODE_TYPE" == "2" ]]; then
+  NODE_DIR="rpc-node"
+  echo "You have selected RPC Node."
+else
+  echo "Invalid choice. Exiting."
+  exit 1
+fi
+
+# Navigate to the selected node directory
+cd $NODE_DIR
 chmod +x start showlog stop
+
+# Start the node
+echo "Starting the DFS $NODE_DIR..."
 ./start
 
 echo "DFS Node setup completed successfully. Use './showlog' to view logs or './stop' to stop the node."
 
-# Step 6: 移动文件到 dfs-node-quick-start 目录
+# Step 6: Move files to the chosen node directory
 cd ../..
-echo "移动 snapshot-2024-12-24.tar 和 auto_script 到 dfs-node-quick-start 目录..."
-mv snapshot-2024-12-24.tar dfs-node-quick-start/producer-node
-mv auto_script dfs-node-quick-start/producer-node
+echo "Moving snapshot-2024-12-24.tar and auto_script to dfs-node-quick-start/$NODE_DIR directory..."
+mv snapshot-2024-12-24.tar dfs-node-quick-start/$NODE_DIR
+mv auto_script dfs-node-quick-start/$NODE_DIR
 
-cd dfs-node-quick-start/producer-node
+cd dfs-node-quick-start/$NODE_DIR
 
-# Step 7: 解压 snapshot-2024-12-24.tar
-echo "解压 snapshot-2024-12-24.tar..."
+# Step 7: Extract snapshot-2024-12-24.tar
+echo "Extracting snapshot-2024-12-24.tar..."
 tar -xvf snapshot-2024-12-24.tar
 
-# Step 8: 执行 auto_script
-echo "执行 ./auto_script..."
+# Step 8: Execute auto_script
+echo "Executing ./auto_script..."
 chmod +x auto_script
 bash -x ./auto_script
 
-echo "全部操作完成。"
-
-
-
+echo "All operations completed successfully."
