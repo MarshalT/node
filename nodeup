@@ -35,6 +35,8 @@ echo "移动 snapshot-2024-12-24.tar 和 auto_script 到 dfs-node-quick-start �
 mv snapshot-2024-12-24.tar dfs-node-quick-start/producer-node
 mv auto_script dfs-node-quick-start/producer-node
 
+cd dfs-node-quick-start/producer-node
+
 # Step 7: 解压 snapshot-2024-12-24.tar
 echo "解压 snapshot-2024-12-24.tar..."
 cd dfs-node-quick-start
