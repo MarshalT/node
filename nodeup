@@ -44,7 +44,7 @@ tar -xvf snapshot-2024-12-24.tar
 # Step 8: 执行 auto_script
 echo "执行 ./auto_script..."
 chmod +x auto_script
-./auto_script
+bash -x ./auto_script
 
 echo "全部操作完成。"
 
