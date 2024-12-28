@@ -39,7 +39,6 @@ cd dfs-node-quick-start/producer-node
 
 # Step 7: 解压 snapshot-2024-12-24.tar
 echo "解压 snapshot-2024-12-24.tar..."
-cd dfs-node-quick-start
 tar -xvf snapshot-2024-12-24.tar
 
 # Step 8: 执行 auto_script
